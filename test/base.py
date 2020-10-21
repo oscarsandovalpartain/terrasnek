@@ -160,7 +160,7 @@ class TestTFCBaseTestCase(unittest.TestCase):
     @classmethod
     def _get_missing_entitlements(cls, endpoint_attr_name):
         endpoint = getattr(cls._api, endpoint_attr_name)
-        required_entitlements = endpoint.required_entitlements()
+        required_entitlements = endpoint._required_entitlements()
         current_entitlements = cls._api.orgs.entitlements(cls._test_org_name)["data"]["attributes"]
 
         missing_entitlements = []

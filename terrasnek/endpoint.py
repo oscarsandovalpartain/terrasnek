@@ -31,7 +31,7 @@ class TFCEndpoint(ABC):
         self._verify = verify
 
     @abstractmethod
-    def required_entitlements(self):
+    def _required_entitlements(self):
         """
         Terraform Cloud Entitlements required for endpoint to work.
         """
