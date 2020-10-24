@@ -126,18 +126,8 @@ class TFC():
         self._logger.debug("Initializing the TFC API class...")
 
         self._instance_url = url
-        self._token = api_token
         self._verify = verify
-
         self._current_org = None
-        self._headers = {
-            "Authorization": f"Bearer {api_token}",
-            "Content-Type": "application/vnd.api+json"
-        }
-
-        self._logger.debug("Retrieving TFC API well known paths..")
-        self._well_known_paths = self.well_known_paths()
-        self._logger.debug("TFC API well known paths retrieved.")
 
         self.admin_orgs: TFCAdminOrgs = None
         self.admin_runs: TFCAdminRuns = None
@@ -181,6 +171,46 @@ class TFC():
         self.workspace_vars: TFCWorkspaceVars = None
         self.workspaces: TFCWorkspaces = None
 
+        self._token = None
+        self._headers = None
+
+        self._logger.debug("Retrieving TFC API well known paths..")
+        self._well_known_paths = self.well_known_paths()
+        self._logger.debug("TFC API well known paths retrieved.")
+
+        self.set_token(api_token)
+        self._initialize_endpoints()
+
+
+    def _get(self, url):
+        """
+        Simplified HTTP GET function for usage only with this API module.
+        """
+        results = None
+        req = requests.get(url, headers=self._headers, verify=self._verify)
+
+        if req.status_code == HTTP_OK:
+            results = json.loads(req.content)
+            self._logger.debug(f"GET to {url} successful")
+        else:
+            err = json.loads(req.content.decode("utf-8"))
+            self._logger.error(err)
+
+        return results
+
+    def set_token(self, token):
+        """
+        Allows for the user to change the token they are using on the fly if
+        they need to change tokens.
+        """
+        self._token = token
+        self._headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/vnd.api+json"
+        }
+        self._initialize_endpoints()
+
+    def _initialize_endpoints(self):
         self._logger.debug("Initializing endpoints that don't require an org to be set...")
         # Loop through all the endpoints that don't require an org and initialize them
         for ep_name in self._class_for_attr_dict["org-not-required"]:
@@ -200,22 +230,6 @@ class TFC():
             setattr(self, ep_name, None)
 
         self._logger.debug("TFC API class initialized.")
-
-    def _get(self, url):
-        """
-        Simplified HTTP GET function for usage only with this API module.
-        """
-        results = None
-        req = requests.get(url, headers=self._headers, verify=self._verify)
-
-        if req.status_code == HTTP_OK:
-            results = json.loads(req.content)
-            self._logger.debug(f"GET to {url} successful")
-        else:
-            err = json.loads(req.content.decode("utf-8"))
-            self._logger.error(err)
-
-        return results
 
     def well_known_paths(self):
         """
